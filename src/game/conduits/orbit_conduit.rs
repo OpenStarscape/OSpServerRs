@@ -28,17 +28,21 @@ pub struct OrbitData {
 
 impl From<OrbitData> for Value {
     fn from(orbit: OrbitData) -> Self {
-        let array: Vec<Value> = vec![
-            orbit.semi_major.into(),
-            orbit.semi_minor.into(),
-            orbit.inclination.into(),
-            orbit.ascending_node.into(),
-            orbit.periapsis.into(),
-            orbit.start_time.into(),
-            orbit.period_time.into(),
-            orbit.parent.into(),
-        ];
-        array.into()
+        if orbit.parent.is_null() {
+            Value::Null
+        } else {
+            let array: Vec<Value> = vec![
+                orbit.semi_major.into(),
+                orbit.semi_minor.into(),
+                orbit.inclination.into(),
+                orbit.ascending_node.into(),
+                orbit.periapsis.into(),
+                orbit.start_time.into(),
+                orbit.period_time.into(),
+                orbit.parent.into(),
+            ];
+            array.into()
+        }
     }
 }
 
@@ -63,10 +67,12 @@ impl OrbitConduit {
         parent: EntityKey,
         f: &F,
     ) -> RequestResult<()> {
-        let parent_body = state.component::<Body>(parent)?;
-        f(&parent_body.position);
-        f(&parent_body.velocity);
-        f(&parent_body.mass);
+        if !parent.is_null() {
+            let parent_body = state.component::<Body>(parent)?;
+            f(&parent_body.position);
+            f(&parent_body.velocity);
+            f(&parent_body.mass);
+        }
         Ok(())
     }
 
@@ -104,9 +110,15 @@ impl OrbitConduit {
     }
 }
 
-impl Conduit<OrbitData, ReadOnlyPropSetType> for OrbitConduit {
-    fn output(&self, state: &State) -> RequestResult<OrbitData> {
+impl Conduit<Option<OrbitData>, ReadOnlyPropSetType> for OrbitConduit {
+    fn output(&self, state: &State) -> RequestResult<Option<OrbitData>> {
         let parent = self.update_parent(state);
+        let body = state.component::<Body>(self.body)?;
+        if let Ok(parent_body) = state.component::<Body>(parent) {
+            let gm = GRAVITATIONAL_CONSTANT * *parent_body.mass;
+        } else {
+        }
+        /*
         Ok(OrbitData {
             semi_major: 100.0,
             semi_minor: 50.0,
@@ -117,6 +129,17 @@ impl Conduit<OrbitData, ReadOnlyPropSetType> for OrbitConduit {
             period_time: 10.0,
             parent,
         })
+        */
+        Ok(Some(OrbitData {
+            semi_major: 100.0,
+            semi_minor: 50.0,
+            inclination: TAU / 6.0,
+            ascending_node: 0.0,
+            periapsis: TAU / 3.0,
+            start_time: 0.0,
+            period_time: 10.0,
+            parent,
+        }))
     }
 
     fn input(&self, _: &mut State, _: ReadOnlyPropSetType) -> RequestResult<()> {
