@@ -3,25 +3,27 @@ use super::*;
 /// [Orbital Elements on Wikipedia](https://en.wikipedia.org/wiki/Orbital_elements) may be helpful
 /// in understanding this struct
 pub struct OrbitData {
-    /// Size of the semi-major axis (longest radius) (commonly a)
+    /// Length of the semi-major axis (longest radius). Commonly a.
     semi_major: f64,
-    /// Size of the semi-minor axis (shortest radius) (commonly b)
+    /// Length of the semi-minor axis (shortest radius). Commonly b.
     semi_minor: f64,
-    /// Angle (in radians) of the orbit compared to the global X/Y plane (commonly i)
+    /// Tilt (in radians) of the orbital plane above the global X/Y plane. Ranges from 0 to π. Commonly i.
     inclination: f64,
-    /// Angle (in radians, on the global X/Y plane) of the ascending node (point where orbit crosses
-    /// global X/Y plane going up) (commonly Ω (idk wtf that is either))
+    /// The ascending node is the point where the orbit crosses the parent's global Z position with a positive Z
+    /// velocity. This property is the angle in radians of the ascending node compared to the parent on the global X/Y
+    /// plane. Commonly Ω (idk wtf that is either).
     ascending_node: f64,
-    /// Angle (in radiuans, in the orbit space) of the periapsis (body's closest point to the
-    /// parent) relative to the ascending node (commonly ω)
+    /// The periapsis is the closest point on the orbit to the parent. This property is the angle in radians of the
+    /// periapsis relative to the ascending node on the orbit plane. 0 is at the ascending node. π/2 means the periapsis
+    /// is at the point on the orbit with the highest global Z value. Commonly ω.
     periapsis: f64,
     /// Some time at which the body was/will be at the periapsis
     start_time: f64,
-    /// Time it takes for a full orbit to complete. Calculatable from parent mass and G, but MUST
-    /// be updated atomically with the rest of the orbit.
+    /// Time it takes for a full orbit to complete. Derivable from parent mass and G. Included here because it must be
+    /// updated atomically with the rest of the orbit parameters.
     period_time: f64,
     /// The "gravity parent" of the body. Should always be the same as the dedicated property of
-    /// that name. Duplicated here because it MUST be updated atomically with the rest of the orbit
+    /// that name. Duplicated here because it must be updated atomically with the rest of the orbit
     /// parameters.
     parent: EntityKey,
 }
